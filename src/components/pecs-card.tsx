@@ -1,29 +1,52 @@
 'use client';
 
 import React from 'react';
-import * as Icons from 'lucide-react';
-import { LucideIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { DynamicIcon } from './dynamic-icon';
 
 interface PECSCardProps {
-  title: string;
-  iconName: string;
-  colorClass: string;
-  onClick?: () => void;
+  readonly title: string;
+  readonly iconName: string;
+  readonly colorClass: string;
+  readonly size?: 'sm' | 'md' | 'lg';
+  readonly selected?: boolean;
+  readonly onClick?: () => void;
 }
 
-export const PECSCard: React.FC<PECSCardProps> = ({ title, iconName, colorClass, onClick }) => {
-  // @ts-ignore - Dynamic icon resolution
-  const Icon = Icons[iconName] as LucideIcon;
+const SIZES = {
+  sm: { icon: 40, text: 'text-sm', padding: 'p-4', gap: 'mb-2' },
+  md: { icon: 64, text: 'text-xl', padding: 'p-6', gap: 'mb-4' },
+  lg: { icon: 80, text: 'text-2xl', padding: 'p-8', gap: 'mb-5' },
+} as const;
+
+export const PECSCard: React.FC<PECSCardProps> = ({
+  title,
+  iconName,
+  colorClass,
+  size = 'md',
+  selected = false,
+  onClick,
+}) => {
+  const sizeConfig = SIZES[size];
 
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center justify-center p-6 rounded-3xl border-4 shadow-lg active:scale-95 transition-all duration-200 aspect-square ${colorClass} hover:shadow-xl group`}
+      role="option"
+      aria-selected={selected}
+      aria-label={title}
+      className={cn(
+        'flex flex-col items-center justify-center rounded-3xl border-4 shadow-lg active:scale-95 transition-all duration-200 aspect-square group',
+        sizeConfig.padding,
+        colorClass,
+        selected && 'ring-4 ring-green-400 border-green-500',
+        'hover:shadow-xl',
+      )}
     >
-      <div className="mb-4 transform group-hover:scale-110 transition-transform duration-300">
-        {Icon ? <Icon size={64} strokeWidth={2} /> : <Icons.HelpCircle size={64} />}
+      <div className={cn(sizeConfig.gap, 'transform group-hover:scale-110 transition-transform duration-300')}>
+        <DynamicIcon name={iconName} size={sizeConfig.icon} strokeWidth={2} />
       </div>
-      <span className="text-xl font-bold text-center leading-tight">
+      <span className={cn(sizeConfig.text, 'font-bold text-center leading-tight')}>
         {title}
       </span>
     </button>
@@ -32,7 +55,11 @@ export const PECSCard: React.FC<PECSCardProps> = ({ title, iconName, colorClass,
 
 export const PECSGrid: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <div className="grid grid-cols-2 gap-6 w-full max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700">
+    <div
+      role="listbox"
+      aria-label="PECS choices"
+      className="grid grid-cols-2 gap-6 w-full max-w-2xl mx-auto"
+    >
       {children}
     </div>
   );

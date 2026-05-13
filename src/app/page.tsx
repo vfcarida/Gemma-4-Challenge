@@ -1,145 +1,170 @@
-import { PECSGenerator } from '@/components/pecs-generator';
-import { BookOpen, ShieldCheck, Cpu, Globe, Users, Heart, Sparkles } from 'lucide-react';
+'use client';
 
-export default function Home() {
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { Layout, BookText, Users, Monitor, TrendingUp, Clock, ArrowRight, Sparkles } from 'lucide-react';
+import { getDashboardStats } from '@/lib/storage';
+import type { SessionLog } from '@/lib/types';
+import { ROUTES } from '@/lib/constants';
+import { formatRelativeTime, getInitials } from '@/lib/utils';
+
+interface DashboardStats {
+  studentCount: number;
+  boardCount: number;
+  sessionCount: number;
+  recentSessions: SessionLog[];
+}
+
+export default function DashboardPage() {
+  const [stats, setStats] = useState<DashboardStats>({
+    studentCount: 0,
+    boardCount: 0,
+    sessionCount: 0,
+    recentSessions: [],
+  });
+
+  useEffect(() => {
+    setStats(getDashboardStats());
+  }, []);
+
+  const quickActions = [
+    {
+      title: 'Smart PECS Generator',
+      description: 'Generate context-aware visual boards for students',
+      icon: Layout,
+      href: ROUTES.PECS,
+      color: 'bg-blue-500',
+    },
+    {
+      title: 'Lesson Adaptor',
+      description: 'Adapt lesson plans for neurodiverse classrooms',
+      icon: BookText,
+      href: ROUTES.LESSONS,
+      color: 'bg-purple-500',
+    },
+    {
+      title: 'Student Mode',
+      description: 'Launch an interactive PECS exercise',
+      icon: Monitor,
+      href: ROUTES.STUDENT_MODE,
+      color: 'bg-green-500',
+    },
+    {
+      title: 'Manage Students',
+      description: 'View and manage student profiles',
+      icon: Users,
+      href: ROUTES.STUDENTS,
+      color: 'bg-orange-500',
+    },
+  ];
+
   return (
-    <main className="min-h-screen bg-slate-50 overflow-x-hidden">
-      {/* Hero Section */}
-      <div className="relative pt-12 pb-20 px-6">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-blue-100/50 rounded-[100%] blur-[120px] -z-10"></div>
-        
-        <div className="max-w-6xl mx-auto">
-          <nav className="flex items-center justify-between mb-16">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200">
-                <Globe className="text-white" size={28} />
-              </div>
-              <div>
-                <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-                  Gemma<span className="text-blue-600">Bridge</span>
-                </h1>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">AI for Inclusive Education</p>
-              </div>
-            </div>
-            
-            <div className="hidden lg:flex items-center space-x-8">
-              <div className="flex items-center space-x-2 text-slate-600">
-                <ShieldCheck size={20} className="text-green-500" />
-                <span className="text-sm font-semibold tracking-tight">On-Device Privacy</span>
-              </div>
-              <div className="flex items-center space-x-2 text-slate-600">
-                <Cpu size={20} className="text-blue-500" />
-                <span className="text-sm font-semibold tracking-tight">Gemma 4 Local Engine</span>
-              </div>
-            </div>
-          </nav>
+    <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-10">
+      {/* Welcome Header */}
+      <div className="space-y-2">
+        <div className="inline-flex items-center space-x-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-bold">
+          <Sparkles size={16} />
+          <span>Google Gemma 4 Challenge</span>
+        </div>
+        <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+          Welcome to Gemma<span className="text-blue-600">Bridge</span>
+        </h1>
+        <p className="text-lg text-slate-500 max-w-2xl">
+          Your AI-powered co-pilot for inclusive education. Generate visual supports
+          and adapt lessons for neurodiverse learners in real-time.
+        </p>
+      </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-20 items-center">
-            <header className="lg:col-span-7 space-y-6">
-              <div className="inline-flex items-center space-x-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-bold animate-fade-in">
-                <Sparkles size={16} />
-                <span>Google Gemma 4 Challenge Entry</span>
-              </div>
-              <h2 className="text-5xl md:text-7xl font-black text-slate-900 leading-[1.1] tracking-tight">
-                Bridging the Gap for <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Neurodiverse Learners.</span>
-              </h2>
-              <p className="text-xl text-slate-500 font-medium leading-relaxed max-w-2xl">
-                GemmaBridge is a local-first co-pilot for educators. We use on-device AI to generate dynamic visual supports and adapt lesson plans in real-time.
-              </p>
-              <div className="flex flex-wrap gap-4 pt-4">
-                <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-100">
-                  <Users className="text-blue-500" size={18} />
-                  <span className="text-sm font-bold text-slate-700">ASD Focused</span>
-                </div>
-                <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-100">
-                  <Heart className="text-red-500" size={18} />
-                  <span className="text-sm font-bold text-slate-700">Sensory-Friendly</span>
-                </div>
-              </div>
-            </header>
-            
-            <div className="lg:col-span-5 hidden lg:block">
-              <div className="relative">
-                <div className="absolute inset-0 bg-blue-400 rounded-3xl blur-3xl opacity-20 -z-10 animate-pulse-gentle"></div>
-                <div className="bg-white p-8 rounded-[2.5rem] shadow-2xl border border-slate-100 rotate-3 hover:rotate-0 transition-transform duration-500">
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-3 border-b pb-4">
-                      <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center">
-                        <BookOpen size={20} className="text-slate-400" />
-                      </div>
-                      <div className="h-4 w-32 bg-slate-100 rounded-full"></div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="h-3 w-full bg-slate-50 rounded-full"></div>
-                      <div className="h-3 w-5/6 bg-slate-50 rounded-full"></div>
-                      <div className="h-3 w-4/6 bg-slate-50 rounded-full"></div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 pt-2">
-                      <div className="aspect-square bg-blue-50 rounded-2xl flex items-center justify-center">
-                        <div className="w-8 h-8 bg-blue-200 rounded-lg animate-pulse"></div>
-                      </div>
-                      <div className="aspect-square bg-green-50 rounded-2xl flex items-center justify-center">
-                        <div className="w-8 h-8 bg-green-200 rounded-lg animate-pulse delay-75"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+      {/* Stats Row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex items-center space-x-4">
+          <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
+            <Users size={24} />
           </div>
-
-          <PECSGenerator />
+          <div>
+            <p className="text-3xl font-black text-slate-900">{stats.studentCount}</p>
+            <p className="text-sm font-medium text-slate-400">Students</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex items-center space-x-4">
+          <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center">
+            <Layout size={24} />
+          </div>
+          <div>
+            <p className="text-3xl font-black text-slate-900">{stats.boardCount}</p>
+            <p className="text-sm font-medium text-slate-400">Boards Saved</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex items-center space-x-4">
+          <div className="w-12 h-12 bg-green-100 text-green-600 rounded-xl flex items-center justify-center">
+            <TrendingUp size={24} />
+          </div>
+          <div>
+            <p className="text-3xl font-black text-slate-900">{stats.sessionCount}</p>
+            <p className="text-sm font-medium text-slate-400">Sessions Logged</p>
+          </div>
         </div>
       </div>
 
-      {/* Benefits Section */}
-      <section className="bg-white py-24 px-6 border-t border-slate-100">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
-          <div className="space-y-4">
-            <div className="w-14 h-14 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center">
-              <ShieldCheck size={28} />
-            </div>
-            <h4 className="text-xl font-bold text-slate-900">Total Privacy</h4>
-            <p className="text-slate-500 leading-relaxed">Runs entirely locally on the device. Sensitive student data never leaves the school's hardware.</p>
-          </div>
-          <div className="space-y-4">
-            <div className="w-14 h-14 bg-green-100 text-green-600 rounded-2xl flex items-center justify-center">
-              <Cpu size={28} />
-            </div>
-            <h4 className="text-xl font-bold text-slate-900">Edge Optimized</h4>
-            <p className="text-slate-500 leading-relaxed">Designed for low-end hardware (4GB-6GB RAM) common in public school systems across Brazil.</p>
-          </div>
-          <div className="space-y-4">
-            <div className="w-14 h-14 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center">
-              <BookOpen size={28} />
-            </div>
-            <h4 className="text-xl font-bold text-slate-900">Multimodal Assistant</h4>
-            <p className="text-slate-500 leading-relaxed">Goes beyond text—translating classroom situations into instant visual choice boards.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer Branding */}
-      <footer className="py-12 border-t border-slate-100 bg-slate-50">
-        <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between space-y-6 md:space-y-0">
-          <div className="flex flex-col items-center md:items-start space-y-2">
-            <p className="text-slate-500 font-medium">
-              © 2026 GemmaBridge - Dev.to Google Gemma 4 Challenge
-            </p>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-              Built for Neurodiverse Inclusion
-            </p>
-          </div>
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-2 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all cursor-pointer">
-              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-black text-xs">G4</span>
+      {/* Quick Actions */}
+      <div>
+        <h2 className="text-xl font-bold text-slate-800 mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {quickActions.map((action) => (
+            <Link
+              key={action.href}
+              href={action.href}
+              className="group bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col space-y-4"
+            >
+              <div className={`w-12 h-12 ${action.color} rounded-xl flex items-center justify-center text-white shadow-md`}>
+                <action.icon size={24} />
               </div>
-              <span className="font-bold text-slate-900">Gemma 4 E2B</span>
-            </div>
-          </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-slate-800 group-hover:text-blue-600 transition-colors">{action.title}</h3>
+                <p className="text-sm text-slate-400 mt-1">{action.description}</p>
+              </div>
+              <div className="flex items-center text-blue-600 text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+                <span>Open</span>
+                <ArrowRight size={16} className="ml-1" />
+              </div>
+            </Link>
+          ))}
         </div>
-      </footer>
-    </main>
+      </div>
+
+      {/* Recent Activity */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-slate-800">Recent Activity</h2>
+          <Link href={ROUTES.HISTORY} className="text-sm text-blue-600 font-semibold hover:underline flex items-center">
+            View all <ArrowRight size={14} className="ml-1" />
+          </Link>
+        </div>
+        {stats.recentSessions.length === 0 ? (
+          <div className="bg-white rounded-2xl p-10 border border-slate-100 text-center">
+            <Clock size={40} className="text-slate-300 mx-auto mb-3" />
+            <p className="text-slate-400 font-medium">No sessions yet.</p>
+            <p className="text-sm text-slate-300">Generate a PECS board and use Student Mode to log interactions.</p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl border border-slate-100 divide-y divide-slate-50">
+            {stats.recentSessions.map((session) => (
+              <div key={session.id} className="flex items-center px-6 py-4 space-x-4">
+                <div className="w-10 h-10 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-sm font-bold">
+                  {getInitials(session.studentName)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-800 truncate">
+                    {session.studentName} selected &quot;{session.selectedCardTitle}&quot;
+                  </p>
+                  <p className="text-xs text-slate-400">{session.boardTitle}</p>
+                </div>
+                <span className="text-xs text-slate-400 whitespace-nowrap">{formatRelativeTime(session.timestamp)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

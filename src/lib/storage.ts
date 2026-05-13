@@ -7,6 +7,14 @@ import type { StudentProfile, PECSBoard, SessionLog } from './types';
 import { STORAGE_KEYS, DEFAULT_STUDENTS } from './constants';
 import { safeJsonParse } from './utils';
 
+// ---- Events ----
+
+const notifyStorageChange = () => {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('gemmabridge-storage-change'));
+  }
+};
+
 // ---- Students ----
 
 /** Retrieves all student profiles. Seeds defaults on first call. */
@@ -39,12 +47,14 @@ export const saveStudent = (student: StudentProfile): void => {
   }
 
   localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(students));
+  notifyStorageChange();
 };
 
 /** Deletes a student profile by ID. */
 export const deleteStudent = (id: string): void => {
   const students = getStudents().filter((s) => s.id !== id);
   localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(students));
+  notifyStorageChange();
 };
 
 // ---- PECS Boards ----
@@ -72,12 +82,31 @@ export const saveBoard = (board: PECSBoard): void => {
   }
 
   localStorage.setItem(STORAGE_KEYS.BOARDS, JSON.stringify(boards));
+  notifyStorageChange();
 };
 
 /** Deletes a PECS board by ID. */
 export const deleteBoard = (id: string): void => {
   const boards = getBoards().filter((b) => b.id !== id);
   localStorage.setItem(STORAGE_KEYS.BOARDS, JSON.stringify(boards));
+  notifyStorageChange();
+};
+
+/** Duplicates a PECS board with a new ID and title suffix. */
+export const duplicateBoard = (id: string): PECSBoard | null => {
+  const board = getBoardById(id);
+  if (!board) return null;
+
+  const copy: PECSBoard = {
+    ...board,
+    id: `${board.id}-copy-${Date.now()}`,
+    title: `${board.title} (Copy)`,
+    createdAt: new Date().toISOString(),
+  };
+
+  saveBoard(copy);
+  // saveBoard already calls notifyStorageChange
+  return copy;
 };
 
 // ---- Session Logs ----
@@ -95,6 +124,7 @@ export const saveSessionLog = (log: SessionLog): void => {
   const logs = getSessionLogs();
   logs.unshift(log);
   localStorage.setItem(STORAGE_KEYS.SESSIONS, JSON.stringify(logs));
+  notifyStorageChange();
 };
 
 /** Gets session logs filtered by student ID. */
@@ -105,12 +135,44 @@ export const getSessionLogsByStudent = (studentId: string): SessionLog[] =>
 export const getSessionLogsByBoard = (boardId: string): SessionLog[] =>
   getSessionLogs().filter((log) => log.boardId === boardId);
 
+// ---- Lessons ----
+
+/** Retrieves all saved lessons. */
+export const getLessons = (): SavedLesson[] => {
+  if (typeof window === 'undefined') return [];
+  const raw = localStorage.getItem(STORAGE_KEYS.LESSONS);
+  return raw ? safeJsonParse<SavedLesson[]>(raw, []) : [];
+};
+
+/** Saves a new lesson adaptation. */
+export const saveLesson = (lesson: SavedLesson): void => {
+  const lessons = getLessons();
+  const index = lessons.findIndex((l) => l.id === lesson.id);
+
+  if (index >= 0) {
+    lessons[index] = lesson;
+  } else {
+    lessons.push(lesson);
+  }
+
+  localStorage.setItem(STORAGE_KEYS.LESSONS, JSON.stringify(lessons));
+  notifyStorageChange();
+};
+
+/** Deletes a lesson by ID. */
+export const deleteLesson = (id: string): void => {
+  const lessons = getLessons().filter((l) => l.id !== id);
+  localStorage.setItem(STORAGE_KEYS.LESSONS, JSON.stringify(lessons));
+  notifyStorageChange();
+};
+
 // ---- Stats ----
 
 /** Returns aggregate stats for the dashboard. */
 export const getDashboardStats = () => ({
   studentCount: getStudents().length,
   boardCount: getBoards().length,
+  lessonCount: getLessons().length,
   sessionCount: getSessionLogs().length,
   recentSessions: getSessionLogs().slice(0, 5),
 });

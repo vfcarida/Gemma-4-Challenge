@@ -93,3 +93,29 @@ body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* Reward Animations */
+@keyframes reward-bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@keyframes reward-star {
+  0% { transform: scale(0) rotate(0deg); opacity: 0; }
+  50% { transform: scale(1.2) rotate(180deg); opacity: 1; }
+  100% { transform: scale(1) rotate(360deg); opacity: 1; }
+}
+
+.reward-bounce {
+  animation: reward-bounce 2s infinite ease-in-out;
+}
+
+.reward-star {
+  animation: reward-star 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Onboarding Stepper */
+.onboarding-step-active {
+  border-color: #3b82f6; /* blue-400 */
+  box-shadow: 0 0 0 4px #dbeafe; /* blue-100 */
+}

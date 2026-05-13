@@ -103,5 +103,6 @@ export const DEFAULT_STUDENTS: readonly StudentProfile[] = [
 export const STORAGE_KEYS = {
   STUDENTS: 'gemmabridge-students',
   BOARDS: 'gemmabridge-boards',
+  LESSONS: 'gemmabridge-lessons',
   SESSIONS: 'gemmabridge-sessions',
 } as const;

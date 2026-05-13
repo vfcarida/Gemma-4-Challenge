@@ -1,24 +1,75 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Clock, User, Layout as LayoutIcon } from 'lucide-react';
-import { getSessionLogs } from '@/lib/storage';
+import { Clock, Layout as LayoutIcon, Download, Trash2 } from 'lucide-react';
+import { useSessionLogs } from '@/hooks/use-storage';
+import { STORAGE_KEYS } from '@/lib/constants';
 import { formatDate, formatRelativeTime, getInitials } from '@/lib/utils';
+import { useToast } from '@/components/toast-provider';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import type { SessionLog } from '@/lib/types';
 
-export default function HistoryPage() {
-  const [sessions, setSessions] = useState<SessionLog[]>([]);
+const exportToCSV = (sessions: SessionLog[]) => {
+  const header = 'Student,Board,Card Selected,Round,Total Rounds,Timestamp\n';
+  const rows = sessions.map((s) =>
+    `"${s.studentName}","${s.boardTitle}","${s.selectedCardTitle}",${s.roundNumber ?? '-'},${s.totalRounds ?? '-'},"${s.timestamp}"`
+  ).join('\n');
 
-  useEffect(() => {
-    setSessions(getSessionLogs());
-  }, []);
+  const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `gemmabridge-sessions-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+};
+
+export default function HistoryPage() {
+  const { showToast } = useToast();
+  const { sessions } = useSessionLogs();
+  const [showClear, setShowClear] = useState(false);
+
+  const handleClearAll = () => {
+    localStorage.removeItem(STORAGE_KEYS.SESSIONS);
+    window.dispatchEvent(new Event('gemmabridge-storage-change'));
+    setShowClear(false);
+    showToast('Session history cleared', 'info');
+  };
 
   return (
     <div className="p-6 lg:p-10 max-w-5xl mx-auto space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Session History</h1>
-        <p className="text-slate-500">View all logged interactions from Student Mode sessions.</p>
+      <div className="flex items-center justify-between">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Session History</h1>
+          <p className="text-slate-500">View all logged interactions from Student Mode sessions.</p>
+        </div>
+        {sessions.length > 0 && (
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => exportToCSV(sessions)}
+              className="flex items-center space-x-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl font-semibold text-sm hover:bg-slate-50 transition-colors"
+            >
+              <Download size={16} /> <span>Export CSV</span>
+            </button>
+            <button
+              onClick={() => setShowClear(true)}
+              className="flex items-center space-x-2 px-4 py-2.5 bg-white border border-red-200 text-red-500 rounded-xl font-semibold text-sm hover:bg-red-50 transition-colors"
+            >
+              <Trash2 size={16} /> <span>Clear All</span>
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Confirm Clear */}
+      <ConfirmDialog
+        open={showClear}
+        title="Clear All History"
+        message="Are you sure you want to delete all session logs? This action cannot be undone."
+        confirmLabel="Clear All"
+        onConfirm={handleClearAll}
+        onCancel={() => setShowClear(false)}
+      />
 
       {sessions.length === 0 ? (
         <div className="bg-white rounded-2xl p-16 border border-slate-100 text-center">
@@ -32,7 +83,8 @@ export default function HistoryPage() {
           <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-slate-50 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
             <div className="col-span-3">Student</div>
             <div className="col-span-3">Board</div>
-            <div className="col-span-3">Selected Card</div>
+            <div className="col-span-2">Selected Card</div>
+            <div className="col-span-1">Round</div>
             <div className="col-span-3 text-right">Time</div>
           </div>
 
@@ -50,10 +102,19 @@ export default function HistoryPage() {
                   <LayoutIcon size={14} className="text-slate-400" />
                   <span className="text-sm text-slate-500 truncate">{session.boardTitle}</span>
                 </div>
-                <div className="md:col-span-3">
+                <div className="md:col-span-2">
                   <span className="text-sm font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
                     {session.selectedCardTitle}
                   </span>
+                </div>
+                <div className="md:col-span-1">
+                  {session.roundNumber ? (
+                    <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
+                      {session.roundNumber}/{session.totalRounds}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-slate-300">—</span>
+                  )}
                 </div>
                 <div className="md:col-span-3 text-right">
                   <span className="text-xs text-slate-400" title={formatDate(session.timestamp)}>

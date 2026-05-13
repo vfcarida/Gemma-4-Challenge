@@ -50,6 +50,16 @@ export interface LessonAdaptation {
   readonly icon: string;
 }
 
+/** A saved lesson adaptation. */
+export interface SavedLesson {
+  readonly id: string;
+  readonly title: string;
+  readonly prompt: string;
+  readonly adaptations: readonly LessonAdaptation[];
+  readonly createdAt: string;
+  readonly studentId?: string;
+}
+
 /** A logged interaction session in Student Mode. */
 export interface SessionLog {
   readonly id: string;
@@ -60,6 +70,8 @@ export interface SessionLog {
   readonly selectedCardId: string;
   readonly selectedCardTitle: string;
   readonly timestamp: string;
+  readonly roundNumber?: number;
+  readonly totalRounds?: number;
 }
 
 /** Categories for PECS cards. */

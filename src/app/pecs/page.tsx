@@ -5,7 +5,7 @@ import { Mic, Send, Loader2, Sparkles, RefreshCw, Lightbulb, Save, Monitor } fro
 import { useRouter } from 'next/navigation';
 import { PECSCard, PECSGrid } from '@/components/pecs-card';
 import { useToast } from '@/components/toast-provider';
-import { saveBoard, getStudents } from '@/lib/storage';
+import { useStudents, useBoards } from '@/hooks/use-storage';
 import { ROUTES } from '@/lib/constants';
 import type { PECSBoard, StudentProfile } from '@/lib/types';
 
@@ -21,16 +21,14 @@ const EXAMPLES = [
 export default function PECSPage() {
   const router = useRouter();
   const { showToast } = useToast();
+  const { students } = useStudents();
+  const { saveBoard } = useBoards();
+
   const [prompt, setPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [board, setBoard] = useState<PECSBoard | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<string>('');
-  const [students, setStudents] = useState<StudentProfile[]>([]);
-
-  React.useEffect(() => {
-    setStudents(getStudents());
-  }, []);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;

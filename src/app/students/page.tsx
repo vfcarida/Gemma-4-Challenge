@@ -2,59 +2,44 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Plus, X, Users, ArrowRight } from 'lucide-react';
-import { getStudents, saveStudent, deleteStudent } from '@/lib/storage';
-import { AVATAR_COLORS, ROUTES } from '@/lib/constants';
-import { generateId, getInitials } from '@/lib/utils';
+import { Plus, Users, ArrowRight, Pencil } from 'lucide-react';
 import { useToast } from '@/components/toast-provider';
-import type { StudentProfile, SensitivityLevel } from '@/lib/types';
+import { useStudents } from '@/hooks/use-storage';
+import { ROUTES } from '@/lib/constants';
+import { getInitials } from '@/lib/utils';
+import { StudentFormModal } from '@/components/student-form-modal';
+import { ConfirmDialog } from '@/components/confirm-dialog';
+import type { StudentProfile } from '@/lib/types';
 
 export default function StudentsPage() {
   const { showToast } = useToast();
-  const [students, setStudents] = useState<StudentProfile[]>([]);
+  const { students, saveStudent, deleteStudent } = useStudents();
   const [showForm, setShowForm] = useState(false);
-  const [formName, setFormName] = useState('');
-  const [formAge, setFormAge] = useState(7);
-  const [formNeeds, setFormNeeds] = useState('');
-  const [formNotes, setFormNotes] = useState('');
+  const [editingStudent, setEditingStudent] = useState<StudentProfile | undefined>(undefined);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
-  useEffect(() => {
-    setStudents(getStudents());
-  }, []);
-
-  const handleAddStudent = () => {
-    if (!formName.trim()) return;
-
-    const newStudent: StudentProfile = {
-      id: generateId('student'),
-      name: formName.trim(),
-      age: formAge,
-      avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
-      needs: formNeeds.split(',').map((n) => n.trim()).filter(Boolean),
-      sensoryPreferences: {
-        soundSensitivity: 'moderate' as SensitivityLevel,
-        lightSensitivity: 'low' as SensitivityLevel,
-        touchSensitivity: 'low' as SensitivityLevel,
-        preferredCalmingStrategies: [],
-      },
-      notes: formNotes,
-      createdAt: new Date().toISOString(),
-    };
-
-    saveStudent(newStudent);
-    setStudents(getStudents());
+  const handleSave = (student: StudentProfile) => {
+    saveStudent(student);
     setShowForm(false);
-    setFormName('');
-    setFormAge(7);
-    setFormNeeds('');
-    setFormNotes('');
-    showToast(`${newStudent.name} added successfully!`);
+    setEditingStudent(undefined);
+    showToast(editingStudent ? `${student.name} updated!` : `${student.name} added!`, 'success');
   };
 
-  const handleDelete = (id: string, name: string) => {
-    deleteStudent(id);
-    setStudents(getStudents());
-    showToast(`${name} removed`, 'info');
+  const handleEdit = (student: StudentProfile) => {
+    setEditingStudent(student);
+    setShowForm(true);
+  };
+
+  const handleCreate = () => {
+    setEditingStudent(undefined);
+    setShowForm(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return;
+    deleteStudent(deleteTarget.id);
+    showToast(`${deleteTarget.name} removed`, 'info');
+    setDeleteTarget(null);
   };
 
   return (
@@ -65,71 +50,30 @@ export default function StudentsPage() {
           <p className="text-slate-500">Manage student profiles with their needs and sensory preferences.</p>
         </div>
         <button
-          onClick={() => setShowForm(true)}
+          onClick={handleCreate}
           className="flex items-center space-x-2 px-5 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all active:scale-95 shadow-md"
         >
           <Plus size={18} /> <span>Add Student</span>
         </button>
       </div>
 
-      {/* Add Student Form Modal */}
-      {showForm && (
-        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl space-y-5" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-slate-900">New Student</h2>
-              <button onClick={() => setShowForm(false)} className="p-1 hover:bg-slate-100 rounded-lg"><X size={20} /></button>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-semibold text-slate-600 block mb-1">Name *</label>
-                <input
-                  value={formName}
-                  onChange={(e) => setFormName(e.target.value)}
-                  className="w-full px-4 py-2.5 border-2 border-slate-200 rounded-xl focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none text-sm"
-                  placeholder="Student name"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-semibold text-slate-600 block mb-1">Age</label>
-                <input
-                  type="number"
-                  value={formAge}
-                  onChange={(e) => setFormAge(parseInt(e.target.value) || 7)}
-                  min={3}
-                  max={18}
-                  className="w-full px-4 py-2.5 border-2 border-slate-200 rounded-xl focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none text-sm"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-semibold text-slate-600 block mb-1">Needs (comma-separated)</label>
-                <input
-                  value={formNeeds}
-                  onChange={(e) => setFormNeeds(e.target.value)}
-                  className="w-full px-4 py-2.5 border-2 border-slate-200 rounded-xl focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none text-sm"
-                  placeholder="e.g., Sensory regulation, Communication support"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-semibold text-slate-600 block mb-1">Notes</label>
-                <textarea
-                  value={formNotes}
-                  onChange={(e) => setFormNotes(e.target.value)}
-                  className="w-full px-4 py-2.5 border-2 border-slate-200 rounded-xl focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none text-sm resize-none h-20"
-                  placeholder="Additional observations..."
-                />
-              </div>
-            </div>
-            <button
-              onClick={handleAddStudent}
-              disabled={!formName.trim()}
-              className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 disabled:opacity-50 transition-all"
-            >
-              Add Student
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Student Form Modal */}
+      <StudentFormModal
+        open={showForm}
+        student={editingStudent}
+        onSave={handleSave}
+        onClose={() => { setShowForm(false); setEditingStudent(undefined); }}
+      />
+
+      {/* Confirm Delete Dialog */}
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Remove Student"
+        message={`Are you sure you want to remove ${deleteTarget?.name ?? ''}? This will not delete their saved boards or session history.`}
+        confirmLabel="Remove"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
 
       {/* Student Cards */}
       {students.length === 0 ? (
@@ -150,6 +94,13 @@ export default function StudentsPage() {
                     <h3 className="font-bold text-slate-800 truncate">{student.name}</h3>
                     <p className="text-sm text-slate-400">Age {student.age}</p>
                   </div>
+                  <button
+                    onClick={() => handleEdit(student)}
+                    className="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors opacity-0 group-hover:opacity-100"
+                    title="Edit student"
+                  >
+                    <Pencil size={16} />
+                  </button>
                 </div>
 
                 <div className="flex flex-wrap gap-1.5">
@@ -174,7 +125,7 @@ export default function StudentsPage() {
                   <ArrowRight size={14} />
                 </Link>
                 <button
-                  onClick={() => handleDelete(student.id, student.name)}
+                  onClick={() => setDeleteTarget({ id: student.id, name: student.name })}
                   className="px-4 py-3 text-sm font-semibold text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors border-l border-slate-100"
                 >
                   Remove

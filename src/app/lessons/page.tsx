@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Send, Loader2, Sparkles, RefreshCw, Lightbulb, Download } from 'lucide-react';
+import { Send, Loader2, Sparkles, RefreshCw, Lightbulb, Download, Save, User } from 'lucide-react';
 import { useToast } from '@/components/toast-provider';
 import { DynamicIcon } from '@/components/dynamic-icon';
-import type { LessonAdaptation } from '@/lib/types';
+import { useStudents, useLessons } from '@/hooks/use-storage';
+import { generateId } from '@/lib/utils';
+import type { LessonAdaptation, StudentProfile, SavedLesson } from '@/lib/types';
 
 
 const EXAMPLES = [
@@ -23,10 +25,14 @@ const PRIORITY_COLORS = {
 
 export default function LessonsPage() {
   const { showToast } = useToast();
+  const { students } = useStudents();
+  const { saveLesson } = useLessons();
+  
   const [prompt, setPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [adaptations, setAdaptations] = useState<LessonAdaptation[]>([]);
   const [lessonTitle, setLessonTitle] = useState('');
+  const [selectedStudent, setSelectedStudent] = useState<string>('');
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -54,6 +60,22 @@ export default function LessonsPage() {
     }
   };
 
+  const handleSave = () => {
+    if (adaptations.length === 0) return;
+
+    const newLesson: SavedLesson = {
+      id: generateId('lesson'),
+      title: lessonTitle || 'Untitled Lesson',
+      prompt,
+      adaptations,
+      createdAt: new Date().toISOString(),
+      studentId: selectedStudent || undefined,
+    };
+
+    saveLesson(newLesson);
+    showToast('Lesson adaptations saved!', 'success');
+  };
+
   return (
     <div className="p-6 lg:p-10 max-w-5xl mx-auto space-y-8">
       <div className="space-y-2">
@@ -71,6 +93,23 @@ export default function LessonsPage() {
           <div className="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-wider">
             Gemma 4 E2B Local
           </div>
+        </div>
+
+        {/* Student Selector */}
+        <div>
+          <label className="text-sm font-semibold text-slate-600 block mb-2 flex items-center">
+            <User size={14} className="mr-1" /> Student Context (optional)
+          </label>
+          <select
+            value={selectedStudent}
+            onChange={(e) => setSelectedStudent(e.target.value)}
+            className="w-full sm:w-64 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 focus:border-purple-400 focus:ring-2 focus:ring-purple-100 outline-none"
+          >
+            <option value="">No student selected</option>
+            {students.map((s) => (
+              <option key={s.id} value={s.id}>{s.name} — Age {s.age}</option>
+            ))}
+          </select>
         </div>
 
         <textarea
@@ -123,9 +162,14 @@ export default function LessonsPage() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h3 className="text-2xl font-bold text-slate-800">{lessonTitle}</h3>
-            <button onClick={handleGenerate} className="flex items-center space-x-1 text-slate-400 hover:text-purple-600 text-sm font-semibold px-3 py-2 rounded-lg hover:bg-purple-50 transition-colors">
-              <RefreshCw size={16} /> <span>Regenerate</span>
-            </button>
+            <div className="flex items-center space-x-2">
+              <button onClick={handleGenerate} className="flex items-center space-x-1 text-slate-400 hover:text-purple-600 text-sm font-semibold px-3 py-2 rounded-lg hover:bg-purple-50 transition-colors">
+                <RefreshCw size={16} /> <span>Regenerate</span>
+              </button>
+              <button onClick={handleSave} className="flex items-center space-x-1 text-purple-600 hover:text-purple-700 text-sm font-semibold px-3 py-2 rounded-lg hover:bg-purple-50 transition-colors">
+                <Save size={16} /> <span>Save Adaptations</span>
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

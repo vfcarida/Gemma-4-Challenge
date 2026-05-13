@@ -1,3 +1,5 @@
+![GemmaBridge Cover](./public/cover.png)
+
 # GemmaBridge: AI Bridging the Inclusion Gap for Neurodiverse Learners 🌉
 
 [![Google Gemma 4 Challenge](https://img.shields.io/badge/Build_with-Gemma_4-blue?style=for-the-badge&logo=google)](https://dev.to/challenges/google-gemma-2026-05-06)

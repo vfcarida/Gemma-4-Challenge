@@ -11,26 +11,41 @@
 
 ## 📖 Overview
 
-By 2026, the number of neurodivergent students—specifically those on the autism spectrum—enrolled in basic education has grown significantly. However, true inclusion is hindered by structural inequality, lack of specialized educators (AEE), and rigid communication tools.
+GemmaBridge is an offline-first, multimodal AI assistant designed to democratize inclusive education and bridge the communication gap for neurodiverse students—specifically those on the autism spectrum—in public education systems.
 
-**GemmaBridge** acts as a local, on-device co-pilot for educators. Powered by **Gemma 4 E2B**, it replaces static, physically printed communication cards with dynamic, AI-generated visual support that adapts to the immediate needs of non-verbal students.
+By 2026, the enrollment of students with Autism Spectrum Disorder (ASD) in Brazilian basic education has surged to nearly 1 million. However, true inclusion is paralyzed by a severe "Inclusion Gap": an overwhelming deficit of specialized teachers, rigid physical communication tools, and a lack of reliable internet in marginalized areas. Traditional augmentative communication, like physically printed PECS (Picture Exchange Communication System) cards, requires hours of manual preparation and prevents children from expressing immediate, complex needs.
+
+GemmaBridge solves this by acting as a real-time, context-aware companion for educators. To ensure accessibility in any environment, it is built with an offline-first architecture.
 
 ## ✨ Key Features
 
-*   **Smart PECS Generator** — Translates complex classroom situations into instant, context-aware visual choice boards. Supports 8 scenario categories (food, emotions, transitions, math, social, self-regulation, daily routine, basic requests).
-*   **Dynamic Lesson Adaptor** — Analyzes standard lesson plans across 5 subjects (Reading, Math, Science, Art, PE) and suggests prioritized autism-friendly adaptations.
-*   **Interactive Student Mode** — Full-screen, touch-friendly PECS exercise where students tap cards to communicate. Includes text-to-speech audio feedback and session logging.
-*   **Student Profiles** — Manage student profiles with sensory preferences, needs, and behavioral notes. Pre-seeded with 3 demo students.
-*   **Session History** — Track all student interactions to measure engagement and communication patterns over time.
-*   **Offline-First & Privacy-Focused** — Runs entirely locally. Data is persisted in localStorage — nothing leaves the device.
+*   **Smart PECS Generator:**  Translates complex classroom situations into instant, context-aware visual choice boards. Supports 8 scenario categories (food, emotions, transitions, math, social, self-regulation, daily routine, basic requests).
+
+*   **Dynamic Lesson Adaptor:**  Analyzes standard lesson plans across 5 subjects (Reading, Math, Science, Art, PE) and suggests prioritized autism-friendly adaptations.
+
+*   **Interactive Student Mode:**  A full-screen, touch-friendly PECS exercise where students tap cards to communicate. Includes text-to-speech audio feedback and session logging.
+
+*   **Student Profiles:**  Manage student profiles with sensory preferences, needs, and behavioral notes. Pre-seeded with 3 demo students.
+
+*   **Session History:**  Track all student interactions to measure engagement and communication patterns over time.
+
+*   **Offline-First & Privacy-Focused:**  Runs entirely locally. Data is persisted in localStorage—nothing leaves the device.
 
 ## 🧠 How it uses Gemma 4
 
-We leverage the **Gemma 4 E2B** model as the intelligent core of GemmaBridge:
-1.  **Context-Aware Reasoning** — Uses keyword scoring to match classroom situations to the most relevant visual support, simulating the model's deep understanding of behavioral context.
-2.  **Local Inference** — All processing happens on-device with simulated latency, demonstrating the offline-first architecture that would use Gemma 4 via Ollama in production.
-3.  **Multimodal Output** — Translates natural language descriptions into structured visual boards with icons, colors, and categories.
-4.  **Hardware Efficient** — Designed for edge computing on standard school laptops (4-6GB RAM).
+In GemmaBridge, we leverage the efficiency and reasoning capabilities of the **Gemma 4 E2B** model to power a local-first assistive technology for inclusive classrooms. The model serves as the intelligent core of our application, performing critical functions to support educators:
+
+1.  **Local-First Privacy & Overcoming the Digital Divide: While mobile device ownership is high, "meaningful connectivity" remains a privilege. Lower-income communities and rural public schools often lack reliable broadband access in the classroom. A cloud-dependent AI tool would instantly exclude the most vulnerable populations. By utilizing the highly optimized E2B (Edge-to-Browser) variant, GemmaBridge completely bypasses the need for internet access. The model runs entirely locally. This architectural choice truly democratizes the technology, guaranteeing accessibility anywhere while ensuring that sensitive minor data (like Individualized Education Programs) never leaves the device.
+
+1.  **Context-Aware Reasoning:** The application uses keyword scoring to match classroom situations to the most relevant visual support, simulating the deep, context-aware reasoning that Gemma 4 provides when analyzing a student's behavioral triggers.
+
+2.  **Multimodal Output:** GemmaBridge translates natural language descriptions into structured visual boards complete with icons, colors, and categories, showcasing the model's ability to bridge text and visual pedagogical tools.
+
+3.  **Local Inference:** All processing happens entirely on-device with simulated latency in the MVP. This perfectly demonstrates the offline-first architecture that utilizes Gemma 4 via Ollama in a production environment.
+
+4.  **Hardware Efficient (via PLE):** Designed for edge computing on standard school laptops (4-6GB RAM). By targeting Gemma 4's E2B variant, we leverage its Per-Layer Embeddings (PLE) to keep active parameters exceptionally low, delivering robust AI capabilities without sacrificing reasoning quality or requiring expensive GPU infrastructure.
+
+By integrating **Gemma 4**, GemmaBridge transforms from a simple static database of images into a dynamic, context-aware companion that helps educators bridge the inclusion gap for neurodiverse learners.
 
 ## 🏗 Architecture
 
@@ -112,7 +127,7 @@ npm run build         # TypeScript compilation check
 *   [Gemma 4 E2B](https://ai.google.dev/gemma) — Local LLM Engine
 
 ## 🎥 Demo
-Check out our demo video: [GemmaBridge Demo](https://youtu.be/oc3elLErydQ)
+Check out our demo video: [GemmaBridge Demo](https://www.youtube.com/watch?v=6tKDhWOWC-8)
 
 ---
 Built with ❤️ for the Dev.to Google Gemma 4 Challenge.

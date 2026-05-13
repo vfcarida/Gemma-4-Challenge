@@ -8,8 +8,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "GemmaEduca TEA | Smart PECS Generator",
-  description: "Local-first assistive technology to dynamically generate PECS boards for students with ASD using Google Gemma 4 E2B.",
+  title: "GemmaBridge | AI Bridging the Inclusion Gap",
+  description: "GemmaBridge: AI Bridging the Inclusion Gap for Neurodiverse Learners using Google Gemma 4 E2B.",
 };
 
 export default function RootLayout({

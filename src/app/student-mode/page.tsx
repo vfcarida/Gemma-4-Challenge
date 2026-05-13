@@ -16,6 +16,13 @@ export default function StudentModePage() {
   const { boards, deleteBoard, duplicateBoard } = useBoards();
   const [filterStudent, setFilterStudent] = useState<string>('all');
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   const filteredBoards = filterStudent === 'all'
     ? boards

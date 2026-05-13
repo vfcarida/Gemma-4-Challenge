@@ -29,6 +29,13 @@ export default function StudentDetailPage() {
   const { lessons } = useLessons();
   
   const [showEdit, setShowEdit] = useState(false);
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   const student = students.find(s => s.id === studentId);
   const studentSessions = sessions.filter(s => s.studentId === studentId);

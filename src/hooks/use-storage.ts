@@ -87,7 +87,13 @@ export const useSessionLogs = () => {
 /** Hook for dashboard statistics. */
 export const useDashboardStats = () => {
   useStorageListener();
-  const [stats, setStats] = useState(() => storage.getDashboardStats());
+  const [stats, setStats] = useState(() => ({
+    studentCount: 0,
+    boardCount: 0,
+    lessonCount: 0,
+    sessionCount: 0,
+    recentSessions: [] as SessionLog[],
+  }));
 
   useEffect(() => {
     setStats(storage.getDashboardStats());

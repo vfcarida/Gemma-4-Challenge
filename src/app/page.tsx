@@ -91,6 +91,13 @@ const OnboardingWizard: React.FC<{ stats: DashboardStats }> = ({ stats }) => {
 
 export default function DashboardPage() {
   const stats = useDashboardStats();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   const showOnboarding = stats.boardCount === 0 && stats.sessionCount === 0;
 

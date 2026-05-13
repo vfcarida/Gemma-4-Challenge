@@ -28,6 +28,13 @@ export default function HistoryPage() {
   const { showToast } = useToast();
   const { sessions } = useSessionLogs();
   const [showClear, setShowClear] = useState(false);
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   const handleClearAll = () => {
     localStorage.removeItem(STORAGE_KEYS.SESSIONS);

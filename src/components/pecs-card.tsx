@@ -36,14 +36,14 @@ export const PECSCard: React.FC<PECSCardProps> = ({
       aria-selected={selected}
       aria-label={title}
       className={cn(
-        'flex flex-col items-center justify-center rounded-3xl border-4 shadow-lg active:scale-95 transition-all duration-200 aspect-square group',
+        'flex flex-col items-center justify-center rounded-3xl border-4 shadow-sm active:scale-[0.98] transition-all duration-300 aspect-square group focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-400 focus-visible:border-transparent',
         sizeConfig.padding,
         colorClass,
-        selected && 'ring-4 ring-green-400 border-green-500',
-        'hover:shadow-xl',
+        selected && 'ring-4 ring-green-400 border-green-500 bg-green-50/50',
+        'hover:shadow-md motion-reduce:transition-none motion-reduce:transform-none',
       )}
     >
-      <div className={cn(sizeConfig.gap, 'transform group-hover:scale-110 transition-transform duration-300')}>
+      <div className={cn(sizeConfig.gap, 'transform group-hover:scale-105 transition-transform duration-300 motion-reduce:transform-none')}>
         <DynamicIcon name={iconName} size={sizeConfig.icon} strokeWidth={2} />
       </div>
       <span className={cn(sizeConfig.text, 'font-bold text-center leading-tight')}>

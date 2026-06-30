@@ -43,7 +43,7 @@ const OnboardingWizard: React.FC<{ stats: DashboardStats }> = ({ stats }) => {
 
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-      <div className="p-8 border-b border-slate-100 bg-gradient-to-r from-blue-50 to-purple-50">
+      <div className="p-8 border-b border-slate-100 bg-slate-50">
         <div className="flex items-center space-x-3 mb-3">
           <Sparkles size={20} className="text-blue-600" />
           <h2 className="text-xl font-bold text-slate-800">Getting Started</h2>
@@ -140,8 +140,8 @@ export default function DashboardPage() {
           <Sparkles size={16} />
           <span>Google Gemma 4 Challenge</span>
         </div>
-        <h1 className="text-4xl font-black text-slate-900 tracking-tight">
-          Welcome to Gemma<span className="text-blue-600">Bridge</span>
+        <h1 className="text-3xl font-bold text-slate-800 tracking-tight">
+          Welcome to Gemma<span className="text-blue-500">Bridge</span>
         </h1>
         <p className="text-lg text-slate-500 max-w-2xl">
           Your AI-powered co-pilot for inclusive education. Generate visual supports
@@ -161,7 +161,7 @@ export default function DashboardPage() {
                 <Users size={24} />
               </div>
               <div>
-                <p className="text-3xl font-black text-slate-900">{stats.studentCount}</p>
+                <p className="text-3xl font-bold text-slate-800">{stats.studentCount}</p>
                 <p className="text-sm font-medium text-slate-400">Students</p>
               </div>
             </div>
@@ -170,7 +170,7 @@ export default function DashboardPage() {
                 <Layout size={24} />
               </div>
               <div>
-                <p className="text-3xl font-black text-slate-900">{stats.boardCount}</p>
+                <p className="text-3xl font-bold text-slate-800">{stats.boardCount}</p>
                 <p className="text-sm font-medium text-slate-400">Boards Saved</p>
               </div>
             </div>
@@ -179,7 +179,7 @@ export default function DashboardPage() {
                 <TrendingUp size={24} />
               </div>
               <div>
-                <p className="text-3xl font-black text-slate-900">{stats.sessionCount}</p>
+                <p className="text-3xl font-bold text-slate-800">{stats.sessionCount}</p>
                 <p className="text-sm font-medium text-slate-400">Sessions Logged</p>
               </div>
             </div>

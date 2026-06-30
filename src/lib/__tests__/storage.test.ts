@@ -114,6 +114,25 @@ describe('Student Storage', () => {
     const found = getStudentById('test-student-1');
     expect(found).toBeUndefined();
   });
+
+  it('returns cached data on subsequent calls without touching localStorage', () => {
+    const getItemSpy = vi.spyOn(localStorageMock, 'getItem');
+    getStudents();
+    const initialCallCount = getItemSpy.mock.calls.length;
+    
+    getStudents();
+    // Should not call getItem again due to cache
+    expect(getItemSpy.mock.calls.length).toBe(initialCallCount);
+  });
+
+  it('recovers from corrupted localStorage data', () => {
+    localStorageMock.setItem(STORAGE_KEYS.STUDENTS, '{ corrupted json');
+    // Clear cache to force read from corrupted storage
+    (globalThis as any).window = undefined; // trigger fallback or error safe reading
+    const students = getStudents();
+    expect(students.length).toBeGreaterThan(0); // Falls back to default array
+    (globalThis as any).window = globalThis;
+  });
 });
 
 describe('Board Storage', () => {

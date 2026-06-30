@@ -174,19 +174,36 @@ export const LESSON_SCENARIOS: readonly LessonScenario[] = [
 // Matching Logic
 // ============================================================================
 
-/** Scores a prompt against a set of keywords. Higher = better match. */
-const scoreMatch = (prompt: string, keywords: readonly string[]): number => {
-  const lower = prompt.toLowerCase();
-  return keywords.reduce((score, kw) => (lower.includes(kw) ? score + 1 : score), 0);
+/** Tokenizes a prompt into lowercase words for O(1) lookups. */
+const tokenizePrompt = (prompt: string): Set<string> => {
+  return new Set(prompt.toLowerCase().match(/\w+/g) || []);
+};
+
+/** Scores a prompt against a set of keywords using O(1) Set lookups. */
+const scoreMatch = (
+  promptTokens: Set<string>,
+  keywords: readonly string[],
+  promptLower: string
+): number => {
+  return keywords.reduce((score, kw) => {
+    // If keyword is a phrase, use fallback string matching
+    if (kw.includes(' ')) {
+      return promptLower.includes(kw) ? score + 1 : score;
+    }
+    // O(1) lookup for single words
+    return promptTokens.has(kw) ? score + 1 : score;
+  }, 0);
 };
 
 /** Finds the best-matching PECS scenario for a given prompt. Falls back to self-regulation. */
 export const matchPECSScenario = (prompt: string): PECSScenario => {
+  const promptLower = prompt.toLowerCase();
+  const tokens = tokenizePrompt(prompt);
   let bestScore = 0;
   let bestScenario = PECS_SCENARIOS[0]; // default: self-regulation
 
   for (const scenario of PECS_SCENARIOS) {
-    const score = scoreMatch(prompt, scenario.keywords);
+    const score = scoreMatch(tokens, scenario.keywords, promptLower);
     if (score > bestScore) {
       bestScore = score;
       bestScenario = scenario;
@@ -198,11 +215,13 @@ export const matchPECSScenario = (prompt: string): PECSScenario => {
 
 /** Finds the best-matching lesson scenario for a given prompt. Falls back to reading. */
 export const matchLessonScenario = (prompt: string): LessonScenario => {
+  const promptLower = prompt.toLowerCase();
+  const tokens = tokenizePrompt(prompt);
   let bestScore = 0;
   let bestScenario = LESSON_SCENARIOS[0]; // default: reading
 
   for (const scenario of LESSON_SCENARIOS) {
-    const score = scoreMatch(prompt, scenario.keywords);
+    const score = scoreMatch(tokens, scenario.keywords, promptLower);
     if (score > bestScore) {
       bestScore = score;
       bestScenario = scenario;

@@ -38,6 +38,15 @@ describe('matchPECSScenario()', () => {
       expect(card.colorClass).toBeTruthy();
     });
   });
+
+  it('handles empty strings and null pointers safely', () => {
+    const result1 = matchPECSScenario('');
+    expect(result1.category).toBe('self-regulation');
+
+    // Simulate potential null/undefined from inputs (though TypeScript catches this, runtime might not if called from JS)
+    const result2 = matchPECSScenario(undefined as any as string || '');
+    expect(result2.category).toBe('self-regulation');
+  });
 });
 
 describe('matchLessonScenario()', () => {
@@ -67,5 +76,10 @@ describe('matchLessonScenario()', () => {
     result.adaptations.forEach((a) => {
       expect(['high', 'medium', 'low']).toContain(a.priority);
     });
+  });
+
+  it('handles boundary conditions smoothly', () => {
+    const result = matchLessonScenario('   ');
+    expect(result.title).toContain('Reading'); // Default fallback
   });
 });

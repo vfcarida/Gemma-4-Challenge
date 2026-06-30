@@ -1,11 +1,27 @@
 // ============================================================================
 // GemmaBridge — Local Storage Abstraction
-// Type-safe persistence layer using localStorage.
+// Type-safe persistence layer using localStorage with In-Memory Cache.
 // ============================================================================
 
-import type { StudentProfile, PECSBoard, SessionLog } from './types';
+import type { StudentProfile, PECSBoard, SessionLog, SavedLesson } from './types';
 import { STORAGE_KEYS, DEFAULT_STUDENTS } from './constants';
 import { safeJsonParse } from './utils';
+
+// ---- In-Memory Cache (Singleton Pattern) ----
+
+interface CacheState {
+  students: StudentProfile[] | null;
+  boards: PECSBoard[] | null;
+  sessions: SessionLog[] | null;
+  lessons: SavedLesson[] | null;
+}
+
+const cache: CacheState = {
+  students: null,
+  boards: null,
+  sessions: null,
+  lessons: null,
+};
 
 // ---- Events ----
 
@@ -15,29 +31,52 @@ const notifyStorageChange = () => {
   }
 };
 
-// ---- Students ----
+// ---- Core IO ----
 
-/** Retrieves all student profiles. Seeds defaults on first call. */
-export const getStudents = (): StudentProfile[] => {
-  if (typeof window === 'undefined') return [];
-
-  const raw = localStorage.getItem(STORAGE_KEYS.STUDENTS);
-  if (raw === null) {
-    // Seed default students on first access
-    const defaults = [...DEFAULT_STUDENTS] as StudentProfile[];
-    localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(defaults));
-    return defaults;
-  }
-  return safeJsonParse<StudentProfile[]>(raw, []);
+const readFromStorage = <T>(key: string, fallback: T): T => {
+  if (typeof window === 'undefined') return fallback;
+  const raw = localStorage.getItem(key);
+  if (raw === null) return fallback;
+  const data = safeJsonParse<T>(raw, fallback);
+  // Basic array validation to prevent runtime crashes if storage is corrupted
+  if (Array.isArray(fallback) && !Array.isArray(data)) return fallback;
+  return data;
 };
 
-/** Retrieves a single student by ID. */
+const writeToStorage = <T>(key: string, data: T, cacheKey: keyof CacheState): void => {
+  cache[cacheKey] = data as any;
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(key, JSON.stringify(data));
+    } catch (err) {
+      console.error(`Failed to write ${key} to localStorage:`, err);
+    }
+  }
+  notifyStorageChange();
+};
+
+// ---- Students ----
+
+export const getStudents = (): StudentProfile[] => {
+  if (cache.students !== null) return cache.students;
+  if (typeof window === 'undefined') return [];
+
+  let students = readFromStorage<StudentProfile[] | null>(STORAGE_KEYS.STUDENTS, null);
+  if (!students || !Array.isArray(students)) {
+    // Seed default students on first access or corruption
+    students = [...DEFAULT_STUDENTS] as StudentProfile[];
+    writeToStorage(STORAGE_KEYS.STUDENTS, students, 'students');
+  } else {
+    cache.students = students;
+  }
+  return cache.students;
+};
+
 export const getStudentById = (id: string): StudentProfile | undefined =>
   getStudents().find((s) => s.id === id);
 
-/** Saves or updates a student profile. */
 export const saveStudent = (student: StudentProfile): void => {
-  const students = getStudents();
+  const students = [...getStudents()];
   const index = students.findIndex((s) => s.id === student.id);
 
   if (index >= 0) {
@@ -46,33 +85,27 @@ export const saveStudent = (student: StudentProfile): void => {
     students.push(student);
   }
 
-  localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(students));
-  notifyStorageChange();
+  writeToStorage(STORAGE_KEYS.STUDENTS, students, 'students');
 };
 
-/** Deletes a student profile by ID. */
 export const deleteStudent = (id: string): void => {
   const students = getStudents().filter((s) => s.id !== id);
-  localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(students));
-  notifyStorageChange();
+  writeToStorage(STORAGE_KEYS.STUDENTS, students, 'students');
 };
 
 // ---- PECS Boards ----
 
-/** Retrieves all saved PECS boards. */
 export const getBoards = (): PECSBoard[] => {
-  if (typeof window === 'undefined') return [];
-  const raw = localStorage.getItem(STORAGE_KEYS.BOARDS);
-  return raw ? safeJsonParse<PECSBoard[]>(raw, []) : [];
+  if (cache.boards !== null) return cache.boards;
+  cache.boards = readFromStorage<PECSBoard[]>(STORAGE_KEYS.BOARDS, []);
+  return cache.boards;
 };
 
-/** Retrieves a single board by ID. */
 export const getBoardById = (id: string): PECSBoard | undefined =>
   getBoards().find((b) => b.id === id);
 
-/** Saves a new PECS board. */
 export const saveBoard = (board: PECSBoard): void => {
-  const boards = getBoards();
+  const boards = [...getBoards()];
   const index = boards.findIndex((b) => b.id === board.id);
 
   if (index >= 0) {
@@ -81,18 +114,14 @@ export const saveBoard = (board: PECSBoard): void => {
     boards.push(board);
   }
 
-  localStorage.setItem(STORAGE_KEYS.BOARDS, JSON.stringify(boards));
-  notifyStorageChange();
+  writeToStorage(STORAGE_KEYS.BOARDS, boards, 'boards');
 };
 
-/** Deletes a PECS board by ID. */
 export const deleteBoard = (id: string): void => {
   const boards = getBoards().filter((b) => b.id !== id);
-  localStorage.setItem(STORAGE_KEYS.BOARDS, JSON.stringify(boards));
-  notifyStorageChange();
+  writeToStorage(STORAGE_KEYS.BOARDS, boards, 'boards');
 };
 
-/** Duplicates a PECS board with a new ID and title suffix. */
 export const duplicateBoard = (id: string): PECSBoard | null => {
   const board = getBoardById(id);
   if (!board) return null;
@@ -105,48 +134,40 @@ export const duplicateBoard = (id: string): PECSBoard | null => {
   };
 
   saveBoard(copy);
-  // saveBoard already calls notifyStorageChange
   return copy;
 };
 
 // ---- Session Logs ----
 
-/** Retrieves all session logs, sorted newest first. */
 export const getSessionLogs = (): SessionLog[] => {
-  if (typeof window === 'undefined') return [];
-  const raw = localStorage.getItem(STORAGE_KEYS.SESSIONS);
-  const logs = raw ? safeJsonParse<SessionLog[]>(raw, []) : [];
-  return logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  if (cache.sessions !== null) return cache.sessions;
+  const logs = readFromStorage<SessionLog[]>(STORAGE_KEYS.SESSIONS, []);
+  cache.sessions = logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  return cache.sessions;
 };
 
-/** Saves a new session log entry. */
 export const saveSessionLog = (log: SessionLog): void => {
-  const logs = getSessionLogs();
+  const logs = [...getSessionLogs()];
   logs.unshift(log);
-  localStorage.setItem(STORAGE_KEYS.SESSIONS, JSON.stringify(logs));
-  notifyStorageChange();
+  writeToStorage(STORAGE_KEYS.SESSIONS, logs, 'sessions');
 };
 
-/** Gets session logs filtered by student ID. */
 export const getSessionLogsByStudent = (studentId: string): SessionLog[] =>
   getSessionLogs().filter((log) => log.studentId === studentId);
 
-/** Gets session logs filtered by board ID. */
 export const getSessionLogsByBoard = (boardId: string): SessionLog[] =>
   getSessionLogs().filter((log) => log.boardId === boardId);
 
 // ---- Lessons ----
 
-/** Retrieves all saved lessons. */
 export const getLessons = (): SavedLesson[] => {
-  if (typeof window === 'undefined') return [];
-  const raw = localStorage.getItem(STORAGE_KEYS.LESSONS);
-  return raw ? safeJsonParse<SavedLesson[]>(raw, []) : [];
+  if (cache.lessons !== null) return cache.lessons;
+  cache.lessons = readFromStorage<SavedLesson[]>(STORAGE_KEYS.LESSONS, []);
+  return cache.lessons;
 };
 
-/** Saves a new lesson adaptation. */
 export const saveLesson = (lesson: SavedLesson): void => {
-  const lessons = getLessons();
+  const lessons = [...getLessons()];
   const index = lessons.findIndex((l) => l.id === lesson.id);
 
   if (index >= 0) {
@@ -155,20 +176,16 @@ export const saveLesson = (lesson: SavedLesson): void => {
     lessons.push(lesson);
   }
 
-  localStorage.setItem(STORAGE_KEYS.LESSONS, JSON.stringify(lessons));
-  notifyStorageChange();
+  writeToStorage(STORAGE_KEYS.LESSONS, lessons, 'lessons');
 };
 
-/** Deletes a lesson by ID. */
 export const deleteLesson = (id: string): void => {
   const lessons = getLessons().filter((l) => l.id !== id);
-  localStorage.setItem(STORAGE_KEYS.LESSONS, JSON.stringify(lessons));
-  notifyStorageChange();
+  writeToStorage(STORAGE_KEYS.LESSONS, lessons, 'lessons');
 };
 
 // ---- Stats ----
 
-/** Returns aggregate stats for the dashboard. */
 export const getDashboardStats = () => ({
   studentCount: getStudents().length,
   boardCount: getBoards().length,
@@ -176,3 +193,11 @@ export const getDashboardStats = () => ({
   sessionCount: getSessionLogs().length,
   recentSessions: getSessionLogs().slice(0, 5),
 });
+
+// For testing purposes
+export const clearCache = () => {
+  cache.students = null;
+  cache.boards = null;
+  cache.sessions = null;
+  cache.lessons = null;
+};

@@ -104,5 +104,3 @@ In GemmaBridge, we leverage the efficiency and reasoning capabilities of the **G
 2.  **Context-Aware Reasoning:** The application simulates deep, context-aware reasoning when analyzing a student's behavioral triggers.
 3.  **Hardware Efficiency:** Designed for edge computing on standard school laptops (4-6GB RAM), we leverage Per-Layer Embeddings (PLE) to keep active parameters exceptionally low.
 
----
-Built with ❤️ for the Google Gemma 4 Challenge.

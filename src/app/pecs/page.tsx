@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Mic, Send, Loader2, Sparkles, RefreshCw, Lightbulb, Save, Monitor } from 'lucide-react';
+import { Mic, Send, Loader2, Sparkles, RefreshCw, Lightbulb, Save, Monitor, Upload, Download } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { PECSCard, PECSGrid } from '@/components/pecs-card';
 import { useToast } from '@/components/toast-provider';
 import { useStudents, useBoards } from '@/hooks/use-storage';
 import { ROUTES } from '@/lib/constants';
 import type { PECSBoard, StudentProfile } from '@/lib/types';
+import { exportToOBF, importFromOBF } from '@/lib/obf';
 
 const EXAMPLES = [
   'Lucas is overwhelmed by the recess bell. Generate self-regulation options.',
@@ -61,6 +62,44 @@ export default function PECSPage() {
     showToast('Board saved successfully!', 'success');
   };
 
+  const handleExportOBF = () => {
+    if (!board) return;
+    try {
+      const obfData = exportToOBF(board);
+      const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(obfData, null, 2))}`;
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute('href', jsonString);
+      downloadAnchor.setAttribute('download', `${board.title.toLowerCase().replace(/\s+/g, '-')}.obf`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast('Board exported as OBF successfully!', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to export board to OBF', 'error');
+    }
+  };
+
+  const handleImportOBF = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const json = JSON.parse(event.target?.result as string);
+        const importedBoard = importFromOBF(json);
+        saveBoard(importedBoard);
+        setBoard(importedBoard);
+        showToast(`Successfully imported board: ${importedBoard.title}`, 'success');
+      } catch (err: any) {
+        console.error(err);
+        showToast(err.message || 'Failed to parse OBF file', 'error');
+      }
+    };
+    reader.readAsText(file);
+  };
+
   const handleOpenStudentMode = () => {
     if (!board) return;
     saveBoard(board);
@@ -77,9 +116,23 @@ export default function PECSPage() {
 
   return (
     <div className="p-6 lg:p-10 max-w-5xl mx-auto space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Smart PECS Generator</h1>
-        <p className="text-slate-500">Describe a classroom situation to generate a context-aware visual choice board.</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Smart PECS Generator</h1>
+          <p className="text-slate-500">Describe a classroom situation to generate a context-aware visual choice board.</p>
+        </div>
+        <div className="flex items-center space-x-2">
+          <label className="flex items-center space-x-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl font-bold cursor-pointer transition-all text-sm shadow-sm">
+            <Upload size={16} />
+            <span>Import OBF Board</span>
+            <input
+              type="file"
+              accept=".obf,.json"
+              onChange={handleImportOBF}
+              className="hidden"
+            />
+          </label>
+        </div>
       </div>
 
       {/* Input Section */}
@@ -200,6 +253,9 @@ export default function PECSPage() {
           <div className="flex flex-wrap justify-center gap-4 pt-4">
             <button onClick={handleSaveBoard} className="flex items-center space-x-2 px-6 py-3 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition-all active:scale-95 shadow-md">
               <Save size={18} /> <span>Save Board</span>
+            </button>
+            <button onClick={handleExportOBF} className="flex items-center space-x-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition-all active:scale-95 shadow-sm">
+              <Download size={18} /> <span>Export OBF</span>
             </button>
             <button onClick={handleOpenStudentMode} className="flex items-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-all active:scale-95 shadow-md">
               <Monitor size={18} /> <span>Open in Student Mode</span>

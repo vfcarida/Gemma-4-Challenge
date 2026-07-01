@@ -47,16 +47,16 @@ export const getInitials = (name: string): string =>
     .toUpperCase()
     .substring(0, 2);
 
-/** Speaks text aloud using the browser SpeechSynthesis API. */
-export const speakText = (text: string): void => {
+/** Speaks text aloud using the browser SpeechSynthesis API with optional rate and pitch overrides. */
+export const speakText = (text: string, rate = 0.85, pitch = 1.1): void => {
   if (typeof window === 'undefined' || !window.speechSynthesis) return;
 
   // Cancel any ongoing speech
   window.speechSynthesis.cancel();
 
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = 0.85;
-  utterance.pitch = 1.1;
+  utterance.rate = rate;
+  utterance.pitch = pitch;
   utterance.volume = 1.0;
   utterance.lang = 'en-US';
 

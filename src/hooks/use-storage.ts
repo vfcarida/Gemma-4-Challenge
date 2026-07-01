@@ -19,7 +19,7 @@ const useStorageListener = () => {
 
 /** Hook for managing student profiles. */
 export const useStudents = () => {
-  useStorageListener();
+  const version = useStorageListener();
   const [students, setStudents] = useState<StudentProfile[]>([]);
 
   const refresh = useCallback(() => {
@@ -28,7 +28,7 @@ export const useStudents = () => {
 
   useEffect(() => {
     refresh();
-  }, [refresh]);
+  }, [refresh, version]);
 
   return {
     students,
@@ -41,7 +41,7 @@ export const useStudents = () => {
 
 /** Hook for managing PECS boards. */
 export const useBoards = () => {
-  useStorageListener();
+  const version = useStorageListener();
   const [boards, setBoards] = useState<PECSBoard[]>([]);
 
   const refresh = useCallback(() => {
@@ -50,7 +50,7 @@ export const useBoards = () => {
 
   useEffect(() => {
     refresh();
-  }, [refresh]);
+  }, [refresh, version]);
 
   return {
     boards,
@@ -64,7 +64,7 @@ export const useBoards = () => {
 
 /** Hook for managing session logs. */
 export const useSessionLogs = () => {
-  useStorageListener();
+  const version = useStorageListener();
   const [sessions, setSessions] = useState<SessionLog[]>([]);
 
   const refresh = useCallback(() => {
@@ -73,7 +73,7 @@ export const useSessionLogs = () => {
 
   useEffect(() => {
     refresh();
-  }, [refresh]);
+  }, [refresh, version]);
 
   return {
     sessions,
@@ -86,7 +86,7 @@ export const useSessionLogs = () => {
 
 /** Hook for dashboard statistics. */
 export const useDashboardStats = () => {
-  useStorageListener();
+  const version = useStorageListener();
   const [stats, setStats] = useState(() => ({
     studentCount: 0,
     boardCount: 0,
@@ -97,14 +97,14 @@ export const useDashboardStats = () => {
 
   useEffect(() => {
     setStats(storage.getDashboardStats());
-  }, []);
+  }, [version]);
 
   return stats;
 };
 
 /** Hook for managing saved lessons. */
 export const useLessons = () => {
-  useStorageListener();
+  const version = useStorageListener();
   const [lessons, setLessons] = useState<SavedLesson[]>([]);
 
   const refresh = useCallback(() => {
@@ -113,7 +113,7 @@ export const useLessons = () => {
 
   useEffect(() => {
     refresh();
-  }, [refresh]);
+  }, [refresh, version]);
 
   return {
     lessons,

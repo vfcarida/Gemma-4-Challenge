@@ -14,6 +14,7 @@ import {
   saveLesson,
   deleteLesson,
   getDashboardStats,
+  clearCache,
 } from '../storage';
 import { STORAGE_KEYS } from '../constants';
 import type { StudentProfile, PECSBoard, SessionLog, SavedLesson } from '../types';
@@ -32,6 +33,7 @@ const localStorageMock = {
 
 beforeEach(() => {
   Object.keys(store).forEach((key) => delete store[key]);
+  clearCache();
 
   // Ensure window and localStorage exist in Node
   (globalThis as any).window = globalThis;
@@ -127,11 +129,9 @@ describe('Student Storage', () => {
 
   it('recovers from corrupted localStorage data', () => {
     localStorageMock.setItem(STORAGE_KEYS.STUDENTS, '{ corrupted json');
-    // Clear cache to force read from corrupted storage
-    (globalThis as any).window = undefined; // trigger fallback or error safe reading
+    // Cache is already cleared by beforeEach, so it will read from localStorageMock
     const students = getStudents();
     expect(students.length).toBeGreaterThan(0); // Falls back to default array
-    (globalThis as any).window = globalThis;
   });
 });
 
